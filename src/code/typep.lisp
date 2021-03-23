@@ -236,6 +236,10 @@
   ;; easy to trigger the same problem using a different code path -- but in practice
   ;; locking here makes Slime unusable with :SPAWN in post *WORLD-LOCK* world. So...
   ;; -- NS 2008-12-16
+  ;; Because this is almost never called for struture-object subtypes, it may not
+  ;; be worth special-casing for it. A way it my get called on structures is from
+  ;; %%TYPEP in ABOUT-TO-MODIFY-SYMBOL-VALUE or the interpreter, such as via the
+  ;; fasloader executing (SET '*PACKAGE* ...)
   (multiple-value-bind (obj-layout layout)
       (cond ((not (layout-for-pcl-obj-p obj-layout))
              ;; If the object is a structure or condition, just ensure validity of the class
@@ -256,8 +260,6 @@
                (%ensure-classoid-valid classoid layout "typep")
                (when (zerop (layout-clos-hash obj-layout))
                  (setq obj-layout (sb-pcl::check-wrapper-validity object))))))
-    ;; FIXME: if LAYOUT is for a structure, use the STRUCTURE-IS-A test
-    ;; which avoids iterating.
     (or (eq obj-layout layout)
         (let ((obj-inherits (layout-inherits obj-layout)))
           (dotimes (i (length obj-inherits) nil)
