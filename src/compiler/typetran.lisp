@@ -1210,9 +1210,11 @@
       ;; FIXME: #+long-float (t ,(error "LONG-FLOAT case needed"))
       ((csubtypep tspec (specifier-type 'float))
        (if (types-equal-or-intersect value-type (specifier-type 'float))
-           `(the ,tval (if (floatp x)
+           `(the ,tval (locally
+                           (declare (type real x))
+                         (if (floatp x)
                            x
-                           (%single-float x)))
+                           (%single-float x))))
            `(the ,tval (%single-float x))))
       ((csubtypep tspec (specifier-type 'complex))
        (multiple-value-bind (part-type result-type)
